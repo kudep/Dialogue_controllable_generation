@@ -509,9 +509,91 @@ PALs, different attributes in batch & \bestscore{80.32}{2.79}                 & 
 
 \subsection{Blenderbot evaluation}
 \label{sec:blenderbot_evaluation}
-Experiments with DialoGPT-small (more details in Appendix ~\ref{sec:comp_pretrain_and_finetune}) showed that pretraining of the model with PALs result in higher control accuracy than training only PALs when the main model is freezed, therefore 
 We pretrain Blenderbot on Reddit and finetuned on Daily Dialog, ConvAI2, Emphatetic Dialogue and Wizard of Wikipedia.
 For testing on Wizard of Wikipedia we left in the dataset only samples with "checked sentence"{} (gold grounding knowledge).
+
+\subsection{Perplexity-accuracy tradeoff}
+\label{sec:perplexity_accuracy_tradeoff}
+From one point of view, by telling the model exact values of some attributes we giving more information and making it easier to give more value to a correct answer, so perplexity should drop. Also, by adding adapters we add more weights making the model potentially stronger. But from the other side, we have a relatively small dataset for model to understand attributes perfectly, moreover, in our setup each adapter is trained only on part of dataset, corresponding to its attribute value. If there isn't much data, model will easily overfit (memorize some answers) and the control accuracy score will be high, so as perplexity, because model will have more confidence in memorized answers, we don't want this to happen. Including for this reason we may not want to fine-tune the entire model and are trying to keep its output significant on each layer (averaging adapters with a fixed weight of the main branch during blending, so the model can't ignore outputs from this branch). Experiments in Appendix \ref{sec:average_blending}, Table \ref{reweighting_just_transfered}, \ref{reweighting_transfered_finetuned} show that increasing the main branch's blending weight often improves (lowers) perplexity, given that the main branch was not trained on this dataset, which means that initial language model carries important knowledge and pays attention to the dialogue flow. From dialogues \ref{tab:cake_example_dialogue}, \ref{tab:tea_example_dialogue} we can see, that model is able to incorporate desired attributes in context-related answers (not just a safe universal answers), which are unlikely presented in training dataset.
+
+\subsection{Ethical Considerations}
+\label{sec:ethical_considerations}
+Generative models are known for their ability to produce offensive content of any kind. We haven't done any additional filtering of datasets we use, and the initial models (DialoGPT, Blenderbot) also have issues with producing potentially harmful content. Also in this work we control sentiment. For positive sentiment generation may be more polite, while for the negative sentiment toxicity and offence may appear more often. It's important to say, that our approach is aimed to guide model in desired direction, not to stop it from generating in undesired one.
+
+\begin{table}[]
+\begin{tabular}{rl}
+\multicolumn{1}{c}{Speaker}   & \multicolumn{1}{c}{Utterance}                 \\ \hline
+\textbf{USER}:                         & Hello!                                        \\
+\textbf{BOT} \textit{{[}Question, Positive{]}}: & Hi ! What a great moment . What's up ?        \\
+\textbf{USER}:                         & Actually nothing, just want to talk.          \\
+\textbf{BOT} \textit{{[}Question, Positive{]}}: & What happened ?                               \\
+\textbf{USER}:                         & It's rainy...                                 \\
+\textbf{BOT} \textit{{[}Question, Positive{]}}: & How are you today ?                           \\
+\textbf{USER}:                         & Pretty well                                   \\
+\textbf{BOT} \textit{{[}Question, Positive{]}}: & Great ! Do you like the rain ?                \\
+\textbf{USER}:                         & Yes, I really love it.                        \\
+\textbf{BOT} \textit{{[}Question, Positive{]}}: & What's the matter ?                           \\
+\textbf{USER}:                         & Nothing)                                      \\
+\textbf{BOT} \textit{{[}Question, Positive{]}}: & Oh , how exciting ! How's the weather today ?
+\end{tabular}
+\caption{Example of dialogue with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Positive sentiment and question dialogue act were set for the entire conversation.}
+\label{tab:example_pos_question_dialogue}
+\end{table}
+
+
+\begin{table}[]
+\begin{tabular}{rl}
+\multicolumn{1}{c}{Speaker} & \multicolumn{1}{c}{Utterance}                                                                                                              \\ \hline
+\textbf{USER}:                       & Hello!                                                                                                                                     \\
+\textbf{BOT} \textit{{[}Inform, Negative{]}}: & Hi , I am George .                                                                                                                         \\
+\textbf{USER}:                       & Can we meet?                                                                                                                               \\
+\textbf{BOT} \textit{{[}Inform, Negative{]}}: & I'm afraid that I can't meet you .                                                                                                         \\
+\textbf{USER}:                       & Why? Are you busy?                                                                                                                         \\
+\textbf{BOT} \textit{{[}Inform, Negative{]}}: & No , I'm afraid I'm not .                                                                                                                  \\
+\textbf{USER}:                       & So what happened?                                                                                                                          \\
+\textbf{BOT} \textit{{[}Inform, Negative{]}}: & \begin{tabular}[c]{@{}l@{}}My dad told me that I was going to move to Europe , \\ and he wasn't on the phone anymore .\end{tabular}        \\
+\textbf{USER}:                       & Is your dad lost??? What happened?                                                                                                         \\
+\textbf{BOT} \textit{{[}Inform, Negative{]}}: & \begin{tabular}[c]{@{}l@{}}He just dropped me off in the middle of the street \\ and told me he was going to move to Europe .\end{tabular} \\
+\textbf{USER}:                       & \begin{tabular}[c]{@{}l@{}}So you are not going to move to Europe? \\ Do you have any troubles here?\end{tabular}                          \\
+\textbf{BOT} \textit{{[}Inform, Negative{]}}: & No .                                                                                                                                      
+\end{tabular}
+\caption{Example of dialogue with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Negative sentiment and inform dialogue act were set for the entire conversation.}
+\label{tab:example_neg_inform_dialogue}
+\end{table}
+
+\begin{table}[]
+\begin{tabular}{rl}
+\multicolumn{1}{c}{Speaker}    & \multicolumn{1}{c}{Utterance}                                                                 \\ \hline
+\textbf{USER}:                          & Hello!                                                                                        \\
+\textbf{BOT} \textit{{[}Inform, Positive{]}}:    & Hello ! I am glad to hear that you like our soup !                                            \\
+\textbf{USER}:                          & Oh, actually I haven't said anything, but I really liked your soup!                           \\
+\textbf{BOT} \textit{{[}Question, Positive{]}}:  & Soup ? I love soup .                                                                          \\
+\textbf{USER}:                          & Oh, okay..                                                                                    \\
+\textbf{BOT} \textit{{[}Directive, Positive{]}}: & \begin{tabular}[c]{@{}l@{}}I love soup ! It's full of flavour and it's healthy ! \\ Can you give it some fresh banana too ?\end{tabular}
+\end{tabular}
+\caption{Not very sucessful but common dialogue with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Sentiment and dialogue act for bot responce were selected before each bot's turn.}
+\label{tab:soup_example_dialogue}
+\end{table}
+
+\begin{table}[]
+\begin{tabular}{rl}
+\multicolumn{1}{c}{Speaker}    & \multicolumn{1}{c}{Utterance}                                            \\ \hline
+\textbf{USER}:                          & Do you want a cup of tea?                                                \\
+\textbf{BOT} \textit{{[}Question, Positive{]}}:  & Yes , of course . Do you have a large teethen tea ?                      \\
+\textbf{USER}:                          & I'm afraid no, but we will serve you our best one!                       \\
+\textbf{BOT} \textit{{[}Directive, Positive{]}}: & Good , I will take the tea for free .                                    \\
+\textbf{USER}:                          & Oh, yes, of course                                                       \\
+\textbf{BOT} \textit{{[}Question, Positive{]}}:  & That sounds really good . But , don't you want some tea ?                \\
+\textbf{USER}:                          & Yes, I will make one for myself too                                      \\
+\textbf{BOT} \textit{{[}Directive, Positive{]}}: & Please do tell me when you arrive . I'll send the tea gift card to you . \\
+\textbf{USER}:                          & Oh, thank you! How is it going?                                          \\
+\textbf{BOT} \textit{{[}Inform, Negative{]}}:    & You look like you're leaving .                                           \\
+\textbf{USER}:                          & No, I'm listening to you carefully.                                      \\
+\textbf{BOT} \textit{{[}Inform, Positive{]}}:    & No problem . I'm sorry . Thanks to you , bye !                          
+\end{tabular}
+\caption{Example of dialogue with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Sentiment and dialogue act for bot responce were selected before each bot's turn.}
+\label{tab:tea_example_dialogue}
+\end{table}
 
 \begin{table}[]
 \begin{tabular}{rl}
@@ -529,72 +611,9 @@ For testing on Wizard of Wikipedia we left in the dataset only samples with "che
 \textbf{USER}:                          & I'm happy too!                                              \\
 \textbf{BOT} \textit{{[}Directive, Positive{]}}: & Me too ! There's a sweet strawberry on it . You can do it !
 \end{tabular}
+\caption{Example of dialogue with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Sentiment and dialogue act for bot responce were selected before each bot's turn.}
+\label{tab:cake_example_dialogue}
 \end{table}
-
-\begin{table}[]
-\begin{tabular}{rl}
-\multicolumn{1}{c}{Speaker}    & \multicolumn{1}{c}{Utterance}                                            \\ \hline
-USER:                          & Do you want a cup of tea?                                                \\
-BOT {[}Question, Positive{]}:  & Yes , of course . Do you have a large teethen tea ?                      \\
-USER:                          & I'm afraid no, but we will serve you our best one!                       \\
-BOT {[}Directive, Positive{]}: & Good , I will take the tea for free .                                    \\
-USER:                          & Oh, yes, of course                                                       \\
-BOT {[}Question, Positive{]}:  & That sounds really good . But , don't you want some tea ?                \\
-USER:                          & Yes, I will make one for myself too                                      \\
-BOT {[}Directive, Positive{]}: & Please do tell me when you arrive . I'll send the tea gift card to you . \\
-USER:                          & Oh, thank you! How is it going?                                          \\
-BOT {[}Inform, Negative{]}:    & You look like you're leaving .                                           \\
-USER:                          & No, I'm listening to you carefully.                                      \\
-BOT {[}Inform, Positive{]}:    & No problem . I'm sorry . Thanks to you , bye !                          
-\end{tabular}
-\end{table}
-
-\begin{table}[]
-\begin{tabular}{rl}
-\multicolumn{1}{c}{Speaker}    & \multicolumn{1}{c}{Utterance}                                                                 \\ \hline
-USER:                          & Hello!                                                                                        \\
-BOT {[}Inform, Positive{]}:    & Hello ! I am glad to hear that you like our soup !                                            \\
-USER:                          & Oh, actually I haven't said anything, but I really liked your soup!                           \\
-BOT {[}Question, Positive{]}:  & Soup ? I love soup .                                                                          \\
-USER:                          & Oh, okay..                                                                                    \\
-BOT {[}Directive, Positive{]}: & I love soup ! It's full of flavour and it's healthy ! Can you give it some fresh banana too ?
-\end{tabular}
-\end{table}
-
-\begin{table}[]
-\begin{tabular}{rl}
-\multicolumn{1}{c}{Speaker} & \multicolumn{1}{c}{Utterance}                                                                                                              \\ \hline
-USER:                       & Hello!                                                                                                                                     \\
-BOT {[}Inform, Negative{]}: & Hi , I am George .                                                                                                                         \\
-USER:                       & Can we meet?                                                                                                                               \\
-BOT {[}Inform, Negative{]}: & I'm afraid that I can't meet you .                                                                                                         \\
-USER:                       & Why? Are you busy?                                                                                                                         \\
-BOT {[}Inform, Negative{]}: & No , I'm afraid I'm not .                                                                                                                  \\
-USER:                       & So what happened?                                                                                                                          \\
-BOT {[}Inform, Negative{]}: & \begin{tabular}[c]{@{}l@{}}My dad told me that I was going to move to Europe , \\ and he wasn't on the phone anymore .\end{tabular}        \\
-USER:                       & Is your dad lost??? What happened?                                                                                                         \\
-BOT {[}Inform, Negative{]}: & \begin{tabular}[c]{@{}l@{}}He just dropped me off in the middle of the street \\ and told me he was going to move to Europe .\end{tabular} \\
-USER:                       & \begin{tabular}[c]{@{}l@{}}So you are not going to move to Europe? \\ Do you have any troubles here?\end{tabular}                          \\
-BOT {[}Inform, Negative{]}: & No .                                                                                                                                      
-\end{tabular}
-\end{table}
-
-\begin{table}[]
-\begin{tabular}{rl}
-\multicolumn{1}{c}{Speaker}   & \multicolumn{1}{c}{Utterance}                 \\ \hline
-USER:                         & Hello!                                        \\
-BOT {[}Question, Positive{]}: & Hi ! What a great moment . What's up ?        \\
-USER:                         & Actually nothing, just want to talk.          \\
-BOT {[}Question, Positive{]}: & What happened ?                               \\
-USER:                         & It's rainy...                                 \\
-BOT {[}Question, Positive{]}: & How are you today ?                           \\
-USER:                         & Pretty well                                   \\
-BOT {[}Question, Positive{]}: & Great ! Do you like the rain ?                \\
-USER:                         & Yes, I really love it.                        \\
-BOT {[}Question, Positive{]}: & What's the matter ?                           \\
-USER:                         & Nothing)                                      \\
-BOT {[}Question, Positive{]}: & Oh , how exciting ! How's the weather today ?
-\end{tabular}
-\end{table}
+    
 
 \end{document}
