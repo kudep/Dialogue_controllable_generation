@@ -520,6 +520,13 @@ From one point of view, by telling the model exact values of some attributes we 
 \label{sec:ethical_considerations}
 Generative models are known for their ability to produce offensive content of any kind. We haven't done any additional filtering of datasets we use, and the initial models (DialoGPT, Blenderbot) also have issues with producing potentially harmful content. Also in this work we control sentiment. For positive sentiment generation may be more polite, while for the negative sentiment toxicity and offence may appear more often. It's important to say, that our approach is aimed to guide model in desired direction, not to stop it from generating in undesired one.
 
+\subsection{Dialogue examples}
+\label{sec:dialogue_examples}
+
+We providing some examples of dialogues with DialoGPT-small as an initial model and weighted average blending for dialogue act and sentiment PALs. In Example \ref{tab:example_pos_question_dialogue} positive sentiment and question dialogue act was set for the whole dialogue, in Example \ref{tab:example_neg_inform_dialogue} - negative sentiment and inform dialogue act, and in Example \ref{tab:example_pos_direct_dialogue} - positive sentiment and direct dialogue act. In other examples (\ref{tab:soup_example_dialogue}, \ref{tab:tea_example_dialogue}, \ref{tab:cake_example_dialogue}) attributes were set dynamically before each system turn. Model follows desired direction in terms of attributes, but often ignores context and contradict itself. It is not an unexpected behaviour, since these problems are present in DialoGPT itself.
+
+Sentiment control sometimes goes with emotional expressions (\textit{"Wow!"}, \textit{"How exciting!"}, or see Example \ref{tab:example_pos_question_dialogue}), but the attitude of the whole utterance is also affected by selected sentiment. Inform and question dialogue acts are the most popular and not so hard to master - they don't require deep semantic understanding, and model is good at asking questions and giving information (Examples \ref{tab:example_pos_question_dialogue}, \ref{tab:example_neg_inform_dialogue}). But directive dialogue act requires a bit more analysis (classifier also has problems with direct dialogue act, see Appendix \ref{sec:eval_cls}), and model catches it too (see Examples \ref{tab:example_pos_direct_dialogue}, \ref{tab:soup_example_dialogue}, \ref{tab:tea_example_dialogue}). 
+
 \begin{table}[]
 \begin{tabular}{rl}
 \multicolumn{1}{c}{Speaker}   & \multicolumn{1}{c}{Utterance}                 \\ \hline
@@ -559,6 +566,26 @@ Generative models are known for their ability to produce offensive content of an
 \end{tabular}
 \caption{Example of dialogue with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Negative sentiment and inform dialogue act were set for the entire conversation.}
 \label{tab:example_neg_inform_dialogue}
+\end{table}
+
+\begin{table}[]
+\begin{tabular}{rl}
+\multicolumn{1}{c}{Speaker}    & \multicolumn{1}{c}{Utterance}                                                             \\ \hline
+\textbf{USER}:                          & Hello!                                                                                    \\
+\textbf{BOT} \textit{{[}Directive, Positive{]}}: & \begin{tabular}[c]{@{}l@{}}Hello again , I'm afraid I've been here too long . \\ I need to check your homework for me .\end{tabular} \\
+\textbf{USER}:                          & Okay, I've done it yesterday. Take a look.                                                \\
+\textbf{BOT} \textit{{[}Directive, Positive{]}}: & I'm glad I did . Now do my homework .                                                     \\
+\textbf{USER}:                          & \begin{tabular}[c]{@{}l@{}}Oh, that's a bit confusing. Don't you think, \\that homework should be done by you? \end{tabular}          \\
+\textbf{BOT} \textit{{[}Directive, Positive{]}}: & \begin{tabular}[c]{@{}l@{}} I think so.I think I will write it out myself. \\ If you need a hand on it , ask me .\end{tabular}         \\
+\textbf{USER}:                          & \begin{tabular}[c]{@{}l@{}}That's a good news! Actually, \\ I need you to help me with my computer.\end{tabular}                     \\
+\textbf{BOT} \textit{{[}Directive, Positive{]}}: & Let's try again .                                                                         \\
+\textbf{USER}:                          & What should we try again?                                                                 \\
+\textbf{BOT} \textit{{[}Directive, Positive{]}}: & Just tell me again .                                                                      \\
+\textbf{USER}:                          & I need you to help me with my computer.                                                   \\
+\textbf{BOT} \textit{{[}Directive, Positive{]}}: & thank you .                                                                              
+\end{tabular}
+\caption{Example of dialogue with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Positive sentiment and direct dialogue act were set for the entire conversation.}
+\label{tab:example_pos_direct_dialogue}
 \end{table}
 
 \begin{table}[]
