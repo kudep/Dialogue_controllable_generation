@@ -50,11 +50,11 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-Today, neural language models are commonly employed for generation of natural like responses in dialogue systems. The main issue that limits wide adoption of neural generation is related to poor predictability of responses in terms of content, as well as dialogue attributes such as dialog acts and sentiment.
+Today, neural language models are commonly employed for generation of natural like responses in dialog systems. The main issue that limits wide adoption of neural generation is related to poor predictability of responses in terms of content, as well as dialog attributes such as dialog acts and sentiment.
 %Controllable generative models have an ability to output responses for particular attributes (e.g. dialog act or sentiment) or with a particular content. 
-In this paper we propose a method based on projected attention layers (PALs) for controllable multi-attribute knowledge grounded dialogue generation. We compared a number of methods for training and blending representations produced by PALs combined with DialoGPT base model. Results of our experiments demonstrate that separate pre-training of PAL branches for different attributes followed by transfer and fine-tuning of dense blending layer gives the highest accuracy of control of a generated response for fewer trainable parameters per an attribute. Furthermore, we applied our approach for controllable multi-attribute generation with grounding knowledge to Blenderbot model. Our solution outperforms the baseline Blenderbot and CRAYON model in control accuracy of dialog acts and sentiment on Daily Dialog as well demonstrates a comparable overall quality  of dialogue generation given grounding knowledge on Wizard of Wikipedia.
+In this paper we propose a method based on projected attention layers (PALs) for controllable multi-attribute knowledge grounded dialog generation. We compared a number of methods for training and blending representations produced by PALs combined with DialoGPT base model. Results of our experiments demonstrate that separate pre-training of PAL branches for different attributes followed by transfer and fine-tuning of dense blending layer gives the highest accuracy of control of a generated response for fewer trainable parameters per an attribute. Furthermore, we applied our approach for controllable multi-attribute generation with grounding knowledge to Blenderbot model. Our solution outperforms the baseline Blenderbot and CRAYON model in control accuracy of dialog acts and sentiment on Daily Dialog as well demonstrates a comparable overall quality  of dialog generation given grounding knowledge on Wizard of Wikipedia.
   
-\textbf{Keywords:} controllable dialogue generation, knowledge grounded dialogue generation, projected attention layers.
+\textbf{Keywords:} controllable dialog generation, knowledge grounded dialog generation, projected attention layers.
 \end{abstract}
 
 \selectlanguage{russian}
@@ -73,7 +73,7 @@ In this paper we propose a method based on projected attention layers (PALs) for
 \section{Introduction}
 \label{intro}
 
-Majority of open-domain dialogue systems use hand-crafted finite state machines for response generation \cite{larsson2000information}, \cite{bocklisch2017rasa}, \cite{finch2020emora}. For every expected user utterance these systems define a state with pre-defined output response and transition to the next state of the dialogue, but user input can mismatch a condition for transition in the current state.  As well, the user input can mismatch all possible states defined by the finite state machine. Here, neural generative models are able to help with producing natural like responses. Unfortunately, generative models demonstrate very unreliable coherence with existing dialogue context \cite{abhishek2021transformer}. One of the possible solution is to use controllable attributes such as dialog act or sentiment to guide generation of responses and return the dialog flow back to the domain of pre-defined script. If the script is defined as pairs of adjacent dialog acts, or in goal-oriented dialogue, the attributes of the system response (intent, slot values) are extracted \cite{wu-etal-2019-transferable}, for known attributes of the response a generative model conditioned on grounding knowledge about entities found in the dialogue context or slot values, is able to generate all the bot utterances in the script without retrieval of hand-written responses. Also the right level of control can improve dialogue quality in different aspects \cite{see2019makes}. Social bots like Gunrock \cite{gunrock} and XiaoIce \cite{zhou2019design} are actively using dialogue acts, sentiment and other attributes for dialogue management.
+Majority of open-domain dialog systems use hand-crafted finite state machines for response generation \cite{larsson2000information}, \cite{bocklisch2017rasa}, \cite{finch2020emora}. For every expected user utterance these systems define a state with pre-defined output response and transition to the next state of the dialog, but user input can mismatch a condition for transition in the current state.  As well, the user input can mismatch all possible states defined by the finite state machine. Here, neural generative models are able to help with producing natural like responses. Unfortunately, generative models demonstrate very unreliable coherence with existing dialog context \cite{abhishek2021transformer}. One of the possible solution is to use controllable attributes such as dialog act or sentiment to guide generation of responses and return the dialog flow back to the domain of pre-defined script. If the script is defined as pairs of adjacent dialog acts, or in goal-oriented dialog, the attributes of the system response (intent, slot values) are extracted \cite{wu-etal-2019-transferable}, for known attributes of the response a generative model conditioned on grounding knowledge about entities found in the dialog context or slot values, is able to generate all the bot utterances in the script without retrieval of hand-written responses. Also the right level of control can improve dialog quality in different aspects \cite{see2019makes}. Social bots like Gunrock \cite{gunrock} and XiaoIce \cite{zhou2019design} are actively using dialog acts, sentiment and other attributes for dialog management.
 
 Controllable generative models have been an active area of research over last years. Models \cite{zhao2017learning}, \cite{zhang2018learning} control one attribute of the generated response (dialog act, response relatedness or specificity). The need to control different attributes simultaneously is present in \cite{see2019makes}. General approaches to control multiple attributes simultaneously were presented for different model architectures in \cite{hu2021controllable}, \cite{neural_meta_words}, \cite{attr_alignment}, \cite{side_control}, \cite{phed}. In this paper we propose and study a technique for multi-attribute generation control which is suitable for the both pre-training as well as fine-tuning. We use PALs \cite{stickland2019bert} with transformer architectures, consequently parameters of the main pre-trained model provide constant background knowledge and PAL layers are trained to control generation in respect with specific attribute.
 
@@ -94,7 +94,7 @@ Another way of control is to add special control tokens as an input for model. I
 
 For larger models prefix tuning \cite{prefix_tuning} can be applied. Prompts also can be used for a few shot learning \cite{prompt_based_few_shot}.
 
-Some methods work with a latent space, for example CRAYON \cite{hu2021controllable}, which is based on LSTM, or PHED \cite{phed}, which uses Transformer combined with CVAE to add a latent space to the Transformer architecture. Model GTMES2S, proposed in \cite{neural_meta_words} uses additional modules to control current level of all attributes and guide further generation to reach desired values. Each of CRAYON, PHED and GTMES2S are working with multiple attributes. In XiaoIce dialogue assistant \cite{zhou2019design} GRU is used to generate responses, conditioned on query and response empathy vectors.
+Some methods work with a latent space, for example CRAYON \cite{hu2021controllable}, which is based on LSTM, or PHED \cite{phed}, which uses Transformer combined with CVAE to add a latent space to the Transformer architecture. Model GTMES2S, proposed in \cite{neural_meta_words} uses additional modules to control current level of all attributes and guide further generation to reach desired values. Each of CRAYON, PHED and GTMES2S are working with multiple attributes. In XiaoIce dialog assistant \cite{zhou2019design} GRU is used to generate responses, conditioned on query and response empathy vectors.
 
 The other method is to add special modules to shift embeddings (and maybe hidden states) from initial model, same as with PPLM \cite{pplm}, but to learn a proper transformations in advance and not to tune them on inference. SideControl \cite{side_control} propose a way to perturb embeddings of any language model by training additional module, which will take class embedding or grounding knowledge into account. Another way is to treat control as a special task and add adapters \cite{houlsby2019parameterefficient} for different attributes we want to control. One of such models is Adapter-Bot \cite{madotto2020adapterbot} which has an option of switch between different attributes without changes in initial model. Hyperformer \cite{mahabadi2021parameter} utilizes a shared PAL parameters for all tasks and Transformer layers, these parameters are generated by a hypernetwork. The model \cite{xie2021empathetic} is an encoder-decoder Transformer, where emotions in response are controlled with emotion embeddings, fed into the model. But models with adapters are not able to control multiple attributes simultaneously without additional work. Task-specific parts to the model can also be efficiently added with help of low-rank decomposition, as proposed in LoRA \cite{lora}.
 
@@ -107,12 +107,12 @@ The key points in which our model differs from the others are following:
     \item Scalability in terms of number of controllable attributes and number of their values;
 \end{itemize}
 
-Most of generative models, which do not use external knowledge, are capable of producing grammatically correct and natural responses given the dialogue history, but have a limited ability to generate interesting responses based on facts. On the other hand, knowledge-grounded generative models have an option of controlling content of generated responses with sentences with facts or keywords. CGRG \cite{wu2021controllable} model uses lexical control phrases to control the generated response. The approach of \cite{xu2021retrieval} is based on PALs for different topics which are used for retrieval-free knowledge grounded generation. The model \cite{zhan2021colv} uses latent variables for relevant knowledge selection and response generation. The models \cite{xu2021generating}, \cite{kumar2021controllable} and \cite{gupta2020controlling} controls the generated response by adding as input of the transformer the sequence of keywords before the dialogue history. Our approach is inspired with Blenderbot \cite{roller2020recipes} which is an encoder-decoder transformer pretrained on Reddit and finetuned on Wizard of Wikipedia \cite{dinan2018wizard}, but our model controls not only the content of the response and moreover dialog act and sentiment.
+Most of generative models, which do not use external knowledge, are capable of producing grammatically correct and natural responses given the dialog history, but have a limited ability to generate interesting responses based on facts. On the other hand, knowledge-grounded generative models have an option of controlling content of generated responses with sentences with facts or keywords. CGRG \cite{wu2021controllable} model uses lexical control phrases to control the generated response. The approach of \cite{xu2021retrieval} is based on PALs for different topics which are used for retrieval-free knowledge grounded generation. The model \cite{zhan2021colv} uses latent variables for relevant knowledge selection and response generation. The models \cite{xu2021generating}, \cite{kumar2021controllable} and \cite{gupta2020controlling} controls the generated response by adding as input of the transformer the sequence of keywords before the dialog history. Our approach is inspired with Blenderbot \cite{roller2020recipes} which is an encoder-decoder transformer pretrained on Reddit and finetuned on Wizard of Wikipedia \cite{dinan2018wizard}, but our model controls not only the content of the response and moreover dialog act and sentiment.
 
 \section{Methods}
 In this paper, our goal is to find a method to control different response attributes without losing much token prediction quality (perplexity) and other abilities of the base pre-trained model (e.g., using grounding knowledge). We did most of our experiments with   DialoGPT-small architecture \cite{zhang2020dialogpt}, because of the affordable time to fine tune and the good quality of the pre-trained model. 
 Additional experiments with simultaneous control of content, dialog acts and sentiment we performed with Blenderbot architecture \cite{roller2020recipes}.
-Furthermore, we chose dialog acts (inform, question, directive, commissive) and sentiment (negative, neutral, positive) as controlled attributes. For evaluation of control accuracy we used DailyDialogs \cite{li2017dailydialog}, sentiment labelling was made separately by classifier. For evaluation of knowledge-grounded dialogue generation quality (perplexity) we used Wizard of Wikipedia dataset \cite{dinan2018wizard}.
+Furthermore, we chose dialog acts (inform, question, directive, commissive) and sentiment (negative, neutral, positive) as controlled attributes. For evaluation of control accuracy we used DailyDialogs \cite{li2017dailydialog}, sentiment labelling was made separately by classifier. For evaluation of knowledge-grounded dialog generation quality (perplexity) we used Wizard of Wikipedia dataset \cite{dinan2018wizard}.
 
 \begin{table*}[h]
 \fontsize{9}{11}
@@ -175,12 +175,13 @@ We added the \textit{"default" branch} for each attribute for default selection 
 %If we use a blending layer without trainable parameters, we can try not to take the corresponding PAL into account, but for some blending layers, the number of input vectors is fixed. 
 Default branch is turned on for training on every sample instead of specialized PAL with probability $p = 0.2$. Thus default branch will be trained on all dataset and will not be bound to one attribute value.
 
-We independently trained models for dialog act and sentiment control and transferred these pre-trained branches into one model. Even without any further training resulting model demonstrated a noticeably good attribute control without huge degradation of perplexity, even though PALs for the sentiment were trained on a different dataset (more details in Appendix ~\ref{sec:average_blending}). After transfer, the model with the blending layer are capable to be finetuned on the target dataset. 
+\subsection{Independent PALs pre-training}
+We independently trained models for dialog act and sentiment control and transferred these pre-trained branches into one model. Even without any further training resulting model demonstrated a noticeably good attribute control without huge degradation of perplexity, even though PALs for the sentiment were trained on a different dataset (more details in Appendix ~\ref{sec:average_blending}). After transfer, the model with the blending layer can be finetuned on the target dataset. 
 % Each architecture showed better control abilities without losing perplexity being trained with transferred weights.
 
 \subsection{Control of attributes and context of responses}
 
-One of our goals is to develop a model which could generate responses for a given grounding knowledge and global attributes, such as dialog act and sentiment. %Reddit corpus contains about 147M dialogues on different topics. Dialogues in Wizard of Wikipedia dataset are discussions on Wikipedia pages, and some of the utterances in these dialogues can contain facts from one of the pages. In Blenderbot the inputs are dialogue history and grounding knowledge, separated with a special token, and output is the response which can be based on grounding knowledge. \par
+One of our goals is to develop a model which could generate responses for a given grounding knowledge and global attributes, such as dialog act and sentiment. %Reddit corpus contains about 147M dialogs on different topics. dialogs in Wizard of Wikipedia dataset are discussions on Wikipedia pages, and some of the utterances in these dialogs can contain facts from one of the pages. In Blenderbot the inputs are dialog history and grounding knowledge, separated with a special token, and output is the response which can be based on grounding knowledge. \par
 We modified Blenderbot  Transformer architecture for control of global attributes of the response by adding PALs in parallel with the self-attention layer of the decoder layers. The decoder layer in our modification has 5 branches for dialog acts and 4 for sentiment. The attibute branches were blended with the dense layer and then added to the main branch of the base model.
 
 \section{Experiments and results}
@@ -240,7 +241,7 @@ The next series of experiments was performed with Blenderbot for dialog acts and
 We pretrain Blenderbot on Reddit and finetuned on Daily Dialog, ConvAI2 \cite{dinan2020second}, Emphatetic Dialogue and Wizard of Wikipedia.
 % For testing on Wizard of Wikipedia we left in the dataset only samples with "checked sentence"{} (gold grounding knowledge).
 
-We compared Blenderbot with PALs and baseline Blenderbot on Dialy Dialog dataset (Table~\ref{blenderbot_cont_and_baselines}). It was found that extended Blenderbot outperforms Blenderbot 400M and Blenderbot 90M from Huggingface library in dialog acts and sentiment control accuracy and is comparable with the baseline in perplexity of dialogue generation given grounding knowledge (GK) on Wizard of Wikipedia dataset.
+We compared Blenderbot with PALs and baseline Blenderbot on Dialy Dialog dataset (Table~\ref{blenderbot_cont_and_baselines}). It was found that extended Blenderbot outperforms Blenderbot 400M and Blenderbot 90M from Huggingface library in dialog acts and sentiment control accuracy and is comparable with the baseline in perplexity of dialog generation given grounding knowledge (GK) on Wizard of Wikipedia dataset.
 
 We compared controllable Blenderbot with CRAYON \cite{hu2021controllable} in question asking and sentiment control accuracy on Daily Dialog dataset. Our model controls 4 types of dialog acts, therefore we used PAL for "question"{} dialog act to generate a question and PAL for "inform" otherwise. Blenderbot with PALs outperforms CRAYON in question asking and sentiment control accuracy (Table~\ref{blenderbot_cont_and_crayon}).
 
@@ -550,18 +551,18 @@ For testing on Wizard of Wikipedia we left in the dataset only samples with "che
 
 \subsection{Perplexity-accuracy tradeoff}
 \label{sec:perplexity_accuracy_tradeoff}
-From one point of view, by telling the model exact values of some attributes we giving more information and making it easier to give more value to a correct answer, so perplexity should drop. Also, by adding adapters we add more weights making the model potentially stronger. But from the other side, we have a relatively small dataset for model to understand attributes perfectly, moreover, in our setup each adapter is trained only on part of dataset, corresponding to its attribute value. If there isn't much data, model will easily overfit (memorize some answers) and the control accuracy score will be high, so as perplexity, because model will have more confidence in memorized answers, we don't want this to happen. Including for this reason we may not want to fine-tune the entire model and are trying to keep its output significant on each layer (averaging adapters with a fixed weight of the main branch during blending, so the model can't ignore outputs from this branch). Experiments in Appendix \ref{sec:average_blending}, Table \ref{reweighting_just_transfered}, \ref{reweighting_transfered_finetuned} show that increasing the main branch's blending weight often improves (lowers) perplexity, given that the main branch was not trained on this dataset, which means that initial language model carries important knowledge and pays attention to the dialogue flow. From dialogues \ref{tab:cake_example_dialogue}, \ref{tab:tea_example_dialogue} we can see, that model is able to incorporate desired attributes in context-related answers (not just a safe universal answers), which are unlikely presented in training dataset.
+From one point of view, by telling the model exact values of some attributes we giving more information and making it easier to give more value to a correct answer, so perplexity should drop. Also, by adding adapters we add more weights making the model potentially stronger. But from the other side, we have a relatively small dataset for model to understand attributes perfectly, moreover, in our setup each adapter is trained only on part of dataset, corresponding to its attribute value. If there isn't much data, model will easily overfit (memorize some answers) and the control accuracy score will be high, so as perplexity, because model will have more confidence in memorized answers, we don't want this to happen. Including for this reason we may not want to fine-tune the entire model and are trying to keep its output significant on each layer (averaging adapters with a fixed weight of the main branch during blending, so the model can't ignore outputs from this branch). Experiments in Appendix \ref{sec:average_blending}, Table \ref{reweighting_just_transfered}, \ref{reweighting_transfered_finetuned} show that increasing the main branch's blending weight often improves (lowers) perplexity, given that the main branch was not trained on this dataset, which means that initial language model carries important knowledge and pays attention to the dialog flow. From dialogs \ref{tab:cake_example_dialog}, \ref{tab:tea_example_dialog} we can see, that model is able to incorporate desired attributes in context-related answers (not just a safe universal answers), which are unlikely presented in training dataset.
 
 \subsection{Ethical Considerations}
 \label{sec:ethical_considerations}
 Generative models are known for their ability to produce offensive content of any kind. We haven't done any additional filtering of datasets we use, and the initial models (DialoGPT, Blenderbot) also have issues with producing potentially harmful content. Also in this work we control sentiment. For positive sentiment generation may be more polite, while for the negative sentiment toxicity and offence may appear more often. It's important to say, that our approach is aimed to guide model in desired direction, not to stop it from generating in undesired one.
 
-\subsection{Dialogue examples}
-\label{sec:dialogue_examples}
+\subsection{Dialog examples}
+\label{sec:dialog_examples}
 
-We providing some examples of dialogues with DialoGPT-small as an initial model and weighted average blending for dialogue act and sentiment PALs. In Example \ref{tab:example_pos_question_dialogue} positive sentiment and question dialogue act was set for the whole dialogue, in Example \ref{tab:example_neg_inform_dialogue} - negative sentiment and inform dialogue act, and in Example \ref{tab:example_pos_direct_dialogue} - positive sentiment and direct dialogue act. In other examples (\ref{tab:soup_example_dialogue}, \ref{tab:tea_example_dialogue}, \ref{tab:cake_example_dialogue}) attributes were set dynamically before each system turn. Model follows desired direction in terms of attributes, but often ignores context and contradict itself. It is not an unexpected behaviour, since these problems are present in DialoGPT itself.
+We providing some examples of dialogs with DialoGPT-small as an initial model and weighted average blending for dialog act and sentiment PALs. In Example \ref{tab:example_pos_question_dialog} positive sentiment and question dialog act was set for the whole dialog, in Example \ref{tab:example_neg_inform_dialog} - negative sentiment and inform dialog act, and in Example \ref{tab:example_pos_direct_dialog} - positive sentiment and direct dialog act. In other examples (\ref{tab:soup_example_dialog}, \ref{tab:tea_example_dialog}, \ref{tab:cake_example_dialog}) attributes were set dynamically before each system turn. Model follows desired direction in terms of attributes, but often ignores context and contradict itself. It is not an unexpected behaviour, since these problems are present in DialoGPT itself.
 
-Sentiment control sometimes goes with emotional expressions (\textit{"Wow!"}, \textit{"How exciting!"}, or see Example \ref{tab:example_pos_question_dialogue}), but the attitude of the whole utterance is also affected by selected sentiment. Inform and question dialogue acts are the most popular and not so hard to master - they don't require deep semantic understanding, and model is good at asking questions and giving information (Examples \ref{tab:example_pos_question_dialogue}, \ref{tab:example_neg_inform_dialogue}). But directive dialogue act requires a bit more analysis (classifier also has problems with direct dialogue act, see Appendix \ref{sec:eval_cls}), and model catches it too (see Examples \ref{tab:example_pos_direct_dialogue}, \ref{tab:soup_example_dialogue}, \ref{tab:tea_example_dialogue}). 
+Sentiment control sometimes goes with emotional expressions (\textit{"Wow!"}, \textit{"How exciting!"}, or see Example \ref{tab:example_pos_question_dialog}), but the attitude of the whole utterance is also affected by selected sentiment. Inform and question dialog acts are the most popular and not so hard to master - they don't require deep semantic understanding, and model is good at asking questions and giving information (Examples \ref{tab:example_pos_question_dialog}, \ref{tab:example_neg_inform_dialog}). But directive dialog act requires a bit more analysis (classifier also has problems with direct dialog act, see Appendix \ref{sec:eval_cls}), and model catches it too (see Examples \ref{tab:example_pos_direct_dialog}, \ref{tab:soup_example_dialog}, \ref{tab:tea_example_dialog}). 
 
 \begin{table}[]
 \begin{tabular}{rl}
@@ -579,8 +580,8 @@ Sentiment control sometimes goes with emotional expressions (\textit{"Wow!"}, \t
 \textbf{USER}:                         & Nothing)                                      \\
 \textbf{BOT} \textit{{[}Question, Positive{]}}: & Oh , how exciting ! How's the weather today ?
 \end{tabular}
-\caption{Example of dialogue with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Positive sentiment and question dialogue act were set for the entire conversation.}
-\label{tab:example_pos_question_dialogue}
+\caption{Example of dialog with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Positive sentiment and question dialog act were set for the entire conversation.}
+\label{tab:example_pos_question_dialog}
 \end{table}
 
 
@@ -600,8 +601,8 @@ Sentiment control sometimes goes with emotional expressions (\textit{"Wow!"}, \t
 \textbf{USER}:                       & \begin{tabular}[c]{@{}l@{}}So you are not going to move to Europe? \\ Do you have any troubles here?\end{tabular}                          \\
 \textbf{BOT} \textit{{[}Inform, Negative{]}}: & No .                                                                                                                                      
 \end{tabular}
-\caption{Example of dialogue with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Negative sentiment and inform dialogue act were set for the entire conversation.}
-\label{tab:example_neg_inform_dialogue}
+\caption{Example of dialog with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Negative sentiment and inform dialog act were set for the entire conversation.}
+\label{tab:example_neg_inform_dialog}
 \end{table}
 
 \begin{table}[]
@@ -620,8 +621,8 @@ Sentiment control sometimes goes with emotional expressions (\textit{"Wow!"}, \t
 \textbf{USER}:                          & I need you to help me with my computer.                                                   \\
 \textbf{BOT} \textit{{[}Directive, Positive{]}}: & thank you .                                                                              
 \end{tabular}
-\caption{Example of dialogue with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Positive sentiment and direct dialogue act were set for the entire conversation.}
-\label{tab:example_pos_direct_dialogue}
+\caption{Example of dialog with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Positive sentiment and direct dialog act were set for the entire conversation.}
+\label{tab:example_pos_direct_dialog}
 \end{table}
 
 \begin{table}[]
@@ -634,8 +635,8 @@ Sentiment control sometimes goes with emotional expressions (\textit{"Wow!"}, \t
 \textbf{USER}:                          & Oh, okay..                                                                                    \\
 \textbf{BOT} \textit{{[}Directive, Positive{]}}: & \begin{tabular}[c]{@{}l@{}}I love soup ! It's full of flavour and it's healthy ! \\ Can you give it some fresh banana too ?\end{tabular}
 \end{tabular}
-\caption{Not very sucessful but common dialogue with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Sentiment and dialogue act for bot responce were selected before each bot's turn.}
-\label{tab:soup_example_dialogue}
+\caption{Not very sucessful but common dialog with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Sentiment and dialog act for bot responce were selected before each bot's turn.}
+\label{tab:soup_example_dialog}
 \end{table}
 
 \begin{table}[]
@@ -654,8 +655,8 @@ Sentiment control sometimes goes with emotional expressions (\textit{"Wow!"}, \t
 \textbf{USER}:                          & No, I'm listening to you carefully.                                      \\
 \textbf{BOT} \textit{{[}Inform, Positive{]}}:    & No problem . I'm sorry . Thanks to you , bye !                          
 \end{tabular}
-\caption{Example of dialogue with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Sentiment and dialogue act for bot responce were selected before each bot's turn.}
-\label{tab:tea_example_dialogue}
+\caption{Example of dialog with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Sentiment and dialog act for bot responce were selected before each bot's turn.}
+\label{tab:tea_example_dialog}
 \end{table}
 
 \begin{table}[]
@@ -674,8 +675,8 @@ Sentiment control sometimes goes with emotional expressions (\textit{"Wow!"}, \t
 \textbf{USER}:                          & I'm happy too!                                              \\
 \textbf{BOT} \textit{{[}Directive, Positive{]}}: & Me too ! There's a sweet strawberry on it . You can do it !
 \end{tabular}
-\caption{Example of dialogue with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Sentiment and dialogue act for bot responce were selected before each bot's turn.}
-\label{tab:cake_example_dialogue}
+\caption{Example of dialog with small DialoGPT model and PALs for sentiment and dialog act control, blended with weighted average. Sentiment and dialog act for bot responce were selected before each bot's turn.}
+\label{tab:cake_example_dialog}
 \end{table}
     
 
