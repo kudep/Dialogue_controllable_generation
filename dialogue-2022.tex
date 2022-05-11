@@ -333,6 +333,19 @@ For dialog acts and sentiment classification we used the BERT-based model. One (
 
 % TODO: sentiment classifier balanced accuracy & confusion matrix
 
+\begin{figure*}
+    \centering
+    \includegraphics[scale=0.5]{img/da_classifier_conf_no_hist.png}
+    \caption{Confusion matrix for dialog acts classifier.}
+    \label{da_classifier_no_hist_conf}
+\end{figure*}
+
+\begin{figure*}
+    \centering
+    \includegraphics[scale=0.5]{img/sent_classifier_conf.png}
+    \caption{Confusion matrix for sentiment classifier.}
+    \label{sent_classifier_conf}
+\end{figure*}
 
 \begin{figure*}
     \begin{tabular}{cccc}
@@ -407,6 +420,8 @@ In the same way, we can directly control, how much each attribute influences the
     \item Model was trained (with average blend) without transfer (Table \ref{reweighting_no_transfer})
 \end{enumerate}
 
+Visual results can be found in Figure \ref{reweighting_pals}. Results show that with and without weights transfer branches are learning desired attributes as expected, and it is possible to control the impact of each attribute if needed.
+
 \begin{table*}[ht]
 \fontsize{9}{11}
 \selectfont 
@@ -476,6 +491,27 @@ Dialog act   & Sentiment & Main  & acc.       & acc.      &            \\ \hline
 \caption{Reweighting the impact of trained together from scratch PALs to improve control for selected attributes.}
 \label{reweighting_no_transfer}
 \end{table*}
+
+
+\begin{figure*}[ht]
+    \centering
+    \includegraphics[scale=0.5]{img/reweighting_pals.png}
+    \caption{Attributes balanced accuracy and model perplexity depending on blending weights proportion of PAL for dialog act and PAL for sentiment. Perplexity is high for a model with high sentiment impact and just transferred weights because PALs for sentiment control were trained on a different dataset.}
+    \label{reweighting_pals}
+\end{figure*}
+
+\begin{figure*}[h!]
+    \begin{tabular}{cccc}
+    \subfloat[Pretraining of PALs, dialog acts]{\includegraphics[width = 2.8in]{img/pals_pretrain_da.png}} &
+    \subfloat[Pretraining of PALs, sentiment]{\includegraphics[width = 2.8in]{img/pals_pretrain_sent.png}} \\
+    \subfloat[Fine-tuning of PALs, dialog acts]{\includegraphics[width = 2.8in]{img/pals_finetune_da.png}} &
+    \subfloat[Fine-tuning of PALs, sentiment]{\includegraphics[width = 2.8in]{img/pals_finetune_sent.png}}\\
+    \subfloat[Different attributes in batch, dialog acts]{\includegraphics[width = 2.8in]{img/segm_pals_da.png}} &
+    \subfloat[Different attributes in batch, sentiment]{\includegraphics[width = 2.8in]{img/segm_pals_sent.png}}
+    \end{tabular}
+    \caption{Comparison of different training methods}
+    \label{compare_training_methods}
+\end{figure*}
 
 \subsection{Comparison of pretraining and fine-tuning}
 \label{sec:comp_pretrain_and_finetune}
