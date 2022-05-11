@@ -10,3 +10,6 @@ jobs:
         uses: dante-ev/latex-action@latest
         with:
           root_file: dialogue-2022.tex
+      - uses: actions/upload-artifact@v3
+        with:
+          path: dialogue-2022.pdf
