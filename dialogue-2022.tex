@@ -113,7 +113,7 @@ Controllable generative models have been an active area of research over the las
 
 Informativeness and meaningfulness is another important aspect of generated responses. Blenderbot \cite{roller2020recipes}, CoLV \cite{zhan2021colv} and CGRG \cite{wu2021controllable} use grounding knowledge (retrieved paragraphs) to control the content of output utterances. But these models are not able to be controlled to produce the response with required attributes, such as dialog act or sentiment.
 
-Trained models for the English language, training and inference code and data to test the quality of models are published in Open Source under the Apache 2.0 license (anonymized link). The main contributions of this work are the following:
+Trained models for the English language, training and inference code and data to test the quality of models are published in Open Source under the Apache 2.0 license\footnote{https://github.com/deepmipt/controllable-generation}. The main contributions of this work are the following:
 \begin{itemize}
     \item we develop the method of controllable generation for several simultaneous attributes such as dialog acts and sentiment with no changes in weights of the original model;
     \item we study simultaneous control of knowledge grounding as well as dialog act and sentiment of a response, and find that our model outperforms existing approaches in terms of dialog act and sentiment control accuracy and is competitive in terms of perplexity of knowledge grounded generation.
