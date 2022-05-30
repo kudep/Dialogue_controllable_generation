@@ -455,7 +455,7 @@ In the same way, we can directly control, how much each attribute influences the
     \item Model was trained (with average blend) without transfer (Table \ref{reweighting_no_transfer})
 \end{enumerate}
 
-Visual results can be found in Figure \ref{reweighting_pals}. Results show that with and without weights transfer branches are learning desired attributes as expected, and it is possible to control the impact of each attribute if needed.
+Visual results can be found in Figure \ref{reweighting_pals}. Results show that with and without weights transfer branches are learning desired attributes as expected, and it is possible to control the impact of each attribute if needed. Confusion matrices for one of the models can be found in Figure \ref{weighted_av_conf_matrix_da} and Figure \ref{weighted_av_conf_matrix_sent}.
 
 \begin{table*}[ht]
 \fontsize{9}{11}
@@ -546,6 +546,18 @@ Dialog act   & Sentiment & Main  & acc.       & acc.      &            \\ \hline
     \end{tabular}
     \caption{Comparison of different training methods}
     \label{compare_training_methods}
+\end{figure*}
+
+\begin{figure*}[h!]
+    \includegraphics[width = \textwidth]{img/da_confusion.png}
+    \caption{Confusion matrix for dialog act control, weighted average blending, transferred and fine-tuned PALs.}
+    \label{weighted_av_conf_matrix_da}
+\end{figure*}
+
+\begin{figure*}[h!]
+    \includegraphics[width = \textwidth]{img/sent_confusion.png}
+    \caption{Confusion matrix for sentiment control, weighted average blending, transferred and fine-tuned PALs.}
+    \label{weighted_av_conf_matrix_sent}
 \end{figure*}
 
 \subsection{Comparison of pretraining and fine-tuning}
